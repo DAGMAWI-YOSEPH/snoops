@@ -8,9 +8,7 @@ export function loadTasks(): Task[] {
   try {
     const raw = localStorage.getItem(KEY)
     return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
+  } catch { return [] }
 }
 
 export function saveTasks(tasks: Task[]): void {
@@ -18,7 +16,6 @@ export function saveTasks(tasks: Task[]): void {
   localStorage.setItem(KEY, JSON.stringify(tasks))
 }
 
-// Auto-roll incomplete past tasks to today
 export function rollOverdueTasks(tasks: Task[]): { tasks: Task[]; rolledCount: number } {
   let rolledCount = 0
   const updated = tasks.map((t) => {

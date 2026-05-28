@@ -1,27 +1,111 @@
 @import "tailwindcss";
 
+/* ── Dark-mode class strategy ── */
+@variant dark (&:where(.dark, .dark *));
+
+/* ── Theme tokens ── */
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
+  --bg:          #ffffff;
+  --bg2:         #f5f5f7;
+  --bg3:         #ebebed;
+  --fg:          #000000;
+  --fg2:         #6b6b6b;
+  --fg3:         #aeaeb2;
+  --border:      rgba(0,0,0,0.10);
+  --border2:     rgba(0,0,0,0.06);
+
+  /* liquid glass – light */
+  --glass-bg:        rgba(255,255,255,0.55);
+  --glass-bg-strong: rgba(255,255,255,0.80);
+  --glass-border:    rgba(255,255,255,0.90);
+  --glass-shadow:    0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+  --glass-inner:     0 0 0 0.5px rgba(255,255,255,0.70) inset, 0 1px 0 rgba(255,255,255,0.90) inset;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+.dark {
+  --bg:          #0a0a0a;
+  --bg2:         #141414;
+  --bg3:         #1e1e1e;
+  --fg:          #ffffff;
+  --fg2:         #9b9b9b;
+  --fg3:         #555555;
+  --border:      rgba(255,255,255,0.10);
+  --border2:     rgba(255,255,255,0.06);
+
+  /* liquid glass – dark */
+  --glass-bg:        rgba(28,28,30,0.70);
+  --glass-bg-strong: rgba(28,28,30,0.90);
+  --glass-border:    rgba(255,255,255,0.12);
+  --glass-shadow:    0 4px 32px rgba(0,0,0,0.50), 0 1px 4px rgba(0,0,0,0.30);
+  --glass-inner:     0 0 0 0.5px rgba(255,255,255,0.06) inset, 0 1px 0 rgba(255,255,255,0.08) inset;
 }
+
+/* ── Base ── */
+html, body { height: 100%; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--fg);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-html, body, #__next {
-  height: 100%;
+/* ── Liquid glass utility ── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.02);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.02);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-inner);
 }
 
-.safe-area-bottom {
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(40px) saturate(200%) brightness(1.02);
+  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.02);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-inner);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 0; }
+
+/* ── Safe area ── */
+.safe-pb { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+
+/* ── Drum picker ── */
+.drum-col {
+  height: 150px;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.drum-col::-webkit-scrollbar { display: none; }
+.drum-item {
+  height: 50px;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Swipe container ── */
+.swipe-container {
+  touch-action: pan-y;
+}
+
+/* ── Noise texture overlay ── */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Zoom transition ── */
+.zoom-transition {
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }

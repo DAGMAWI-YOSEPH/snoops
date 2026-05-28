@@ -1,25 +1,25 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Geist } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from '@/lib/theme'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "Snoops",
-  description: "Your minimal to-do companion",
-};
+  title: 'Snoops',
+  description: 'Your minimal to-do companion',
+  icons: {
+    icon: '/snoopy.png',
+    apple: '/snoopy.png',
+  },
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full`}>
-      <body className="h-full bg-white">{children}</body>
+    <html lang="en" className={`${geist.variable} h-full`}>
+      <body className="h-full" style={{ background: 'var(--bg)', color: 'var(--fg)' }}>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
-  );
+  )
 }
