@@ -1,65 +1,88 @@
-import Image from "next/image";
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Task, ActiveView } from '@/lib/types'
+import { loadTasks, saveTasks, rollOverdueTasks } from '@/lib/storage'
+import { today, nextWeek } from '@/lib/dateUtils'
+import DayView from '@/components/DayView'
+import ListView from '@/components/ListView'
+import BottomNav from '@/components/BottomNav'
+import AddTaskModal from '@/components/AddTaskModal'
 
 export default function Home() {
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [view, setView] = useState<ActiveView>('day')
+  const [showAdd, setShowAdd] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const stored = loadTasks()
+    const { tasks: rolled } = rollOverdueTasks(stored)
+    setTasks(rolled)
+    saveTasks(rolled)
+    setMounted(true)
+  }, [])
+
+  const persist = (updated: Task[]) => {
+    setTasks(updated)
+    saveTasks(updated)
+  }
+
+  const handleAdd = (title: string, date: string) => {
+    const task: Task = {
+      id: crypto.randomUUID(),
+      title,
+      completed: false,
+      date,
+      createdAt: new Date().toISOString(),
+    }
+    persist([...tasks, task])
+  }
+
+  const handleToggle = (id: string) => {
+    persist(tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)))
+  }
+
+  const handleDelete = (id: string) => {
+    persist(tasks.filter((t) => t.id !== id))
+  }
+
+  const handleMoveNextWeek = (id: string) => {
+    persist(tasks.map((t) => (t.id === id ? { ...t, date: nextWeek(), autoRolled: false } : t)))
+  }
+
+  const handleMoveSomeday = (id: string) => {
+    persist(tasks.map((t) => (t.id === id ? { ...t, date: 'someday', autoRolled: false } : t)))
+  }
+
+  const handleMoveToday = (id: string) => {
+    persist(tasks.map((t) => (t.id === id ? { ...t, date: today(), autoRolled: false } : t)))
+  }
+
+  if (!mounted) return null
+
+  const sharedProps = {
+    tasks,
+    onToggle: handleToggle,
+    onDelete: handleDelete,
+    onMoveNextWeek: handleMoveNextWeek,
+    onMoveSomeday: handleMoveSomeday,
+    onMoveToday: handleMoveToday,
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    <main className="flex flex-col h-screen max-w-md mx-auto bg-white overflow-hidden">
+      <div className="flex-1 overflow-hidden">
+        {view === 'day' ? (
+          <DayView {...sharedProps} onAdd={() => setShowAdd(true)} />
+        ) : (
+          <ListView {...sharedProps} />
+        )}
+      </div>
+      <BottomNav active={view} onChange={setView} onAdd={() => setShowAdd(true)} />
+      {showAdd && (
+        <AddTaskModal onAdd={handleAdd} onClose={() => setShowAdd(false)} />
+      )}
+    </main>
+  )
 }
